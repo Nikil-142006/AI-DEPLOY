@@ -6,6 +6,9 @@ resources:
   - rbac.yaml
   - configmap.yaml
   - secrets.yaml
+  - mongodb.yaml
+  - redis.yaml
+  - rabbitmq.yaml
   - auth-service.yaml
   - model-service.yaml
   - inference-service.yaml
