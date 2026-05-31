@@ -2,10 +2,7 @@
 PyTorch Model Serving Server
 Supports: .pt (TorchScript), .pth (state_dict + pickle fallback)
 """
-import io
 import time
-import pickle
-import numpy as np
 import torch
 from pathlib import Path
 from fastapi import FastAPI, HTTPException

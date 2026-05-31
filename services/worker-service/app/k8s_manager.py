@@ -1,4 +1,3 @@
-import yaml
 import structlog
 from kubernetes import client as k8s_client, config as k8s_config
 from app.config import get_settings

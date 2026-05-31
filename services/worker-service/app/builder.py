@@ -1,6 +1,5 @@
 import os
 import re
-import json
 import boto3
 import docker
 import structlog

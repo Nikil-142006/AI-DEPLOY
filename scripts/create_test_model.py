@@ -41,13 +41,13 @@ def main():
 
     print(f"\nModel saved to: {output_path}")
     print(f"File size: {output_path.stat().st_size / 1024:.1f} KB")
-    print(f"\n--- How to test ---")
-    print(f"1. Upload this .pkl file via POST /models/upload (framework='sklearn')")
-    print(f"2. Copy the model_id from the response")
-    print(f"3. Run POST /inference/{{model_id}}/predict with body:")
-    print(f'   {{"inputs": [[5.1, 3.5, 1.4, 0.2]]}}')
-    print(f"   (4 features: sepal_length, sepal_width, petal_length, petal_width)")
-    print(f"   Expected: class 0 = setosa, 1 = versicolor, 2 = virginica")
+    print("\n--- How to test ---")
+    print("1. Upload this .pkl file via POST /models/upload (framework='sklearn')")
+    print("2. Copy the model_id from the response")
+    print("3. Run POST /inference/{model_id}/predict with body:")
+    print('   {"inputs": [[5.1, 3.5, 1.4, 0.2]]}')
+    print("   (4 features: sepal_length, sepal_width, petal_length, petal_width)")
+    print("   Expected: class 0 = setosa, 1 = versicolor, 2 = virginica")
 
 
 if __name__ == "__main__":

@@ -2,14 +2,13 @@ import hashlib
 import json
 import time
 import asyncio
-import importlib
 from pathlib import Path
 from typing import List, Any
 
 import httpx
 import redis.asyncio as aioredis
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from prometheus_client import Counter, Histogram
 

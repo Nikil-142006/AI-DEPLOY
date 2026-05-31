@@ -22,7 +22,7 @@ async def get_rabbitmq_channel() -> aio_pika.Channel:
 async def publish_build_job(model_id: str, s3_path: str, framework: str, config: dict):
     """Publish a model build job to RabbitMQ for the worker service."""
     channel = await get_rabbitmq_channel()
-    queue = await channel.declare_queue("model.build", durable=True)
+    await channel.declare_queue("model.build", durable=True)
 
     message_body = {
         "model_id": model_id,

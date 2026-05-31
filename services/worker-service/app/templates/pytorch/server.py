@@ -4,7 +4,6 @@ Supports: .pt (TorchScript), .pth (state_dict + pickle fallback)
 """
 import time
 import torch
-import numpy as np
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
