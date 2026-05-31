@@ -1,0 +1,22 @@
+FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
+
+WORKDIR /app
+
+# Install serving dependencies
+RUN pip install --no-cache-dir \
+    fastapi==0.109.1 \
+    uvicorn[standard]==0.27.0 \
+    numpy==1.26.3 \
+    prometheus-client==0.19.0
+
+# Copy model binary and server
+COPY {{MODEL_FILE}} /app/model_artifact
+COPY server.py /app/server.py
+
+# Non-root user for security
+RUN useradd -m -u 1000 appuser && chown -R appuser /app
+USER appuser
+
+EXPOSE 8080
+
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]

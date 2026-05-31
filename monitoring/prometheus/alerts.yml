@@ -1,0 +1,20 @@
+groups:
+  - name: inference-alerts
+    rules:
+      - alert: HighInferenceLatency
+        expr: histogram_quantile(0.99, sum(rate(model_inference_duration_seconds_bucket[5m])) by (le, model_id)) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P99 inference latency > 1s for {{ $labels.model_id }}"
+          description: "The 99th percentile inference serving latency has exceeded 1 second for the past 5 minutes."
+
+      - alert: ModelPodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Model pod crash looping in namespace {{ $labels.namespace }}"
+          description: "Model container in pod {{ $labels.pod }} is restarting frequently."

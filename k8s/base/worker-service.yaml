@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-service
+  namespace: ai-deploy
+  labels:
+    app: worker-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-service
+  template:
+    metadata:
+      labels:
+        app: worker-service
+    spec:
+      serviceAccountName: worker-service-sa
+      containers:
+        - name: worker-service
+          image: 138114712066.dkr.ecr.us-east-1.amazonaws.com/ai-deploy/worker-service:latest
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ai-deploy-secrets
+                  key: mongo-uri
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ai-deploy-secrets
+                  key: rabbitmq-url
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ai-deploy-secrets
+                  key: aws-access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-deploy-secrets
+                  key: aws-secret-access-key
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-deploy-config
+                  key: aws-region
+            - name: AWS_S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-deploy-config
+                  key: aws-s3-bucket
+            - name: ECR_REGISTRY
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-deploy-config
+                  key: ecr-registry
+            - name: K8S_NAMESPACE
+              value: "model-serving"
+            - name: SERVICE_NAME
+              value: "worker-service"
+          volumeMounts:
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+      volumes:
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket

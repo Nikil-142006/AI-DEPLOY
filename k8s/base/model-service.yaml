@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-service
+  namespace: ai-deploy
+  labels:
+    app: model-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-service
+  strategy:
+    type: RollingUpdate
+    rolling_update:
+      max_surge: 1
+      max_unavailable: 0
+  template:
+    metadata:
+      labels:
+        app: model-service
+    spec:
+      containers:
+        - name: model-service
+          image: 138114712066.dkr.ecr.us-east-1.amazonaws.com/ai-deploy/model-service:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ai-deploy-secrets
+                  key: mongo-uri
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ai-deploy-secrets
+                  key: redis-url
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ai-deploy-secrets
+                  key: rabbitmq-url
+            - name: AWS_S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-deploy-config
+                  key: aws-s3-bucket
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ai-deploy-secrets
+                  key: aws-access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-deploy-secrets
+                  key: aws-secret-access-key
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-deploy-config
+                  key: aws-region
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-deploy-secrets
+                  key: jwt-secret-key
+            - name: SERVICE_NAME
+              value: "model-service"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: model-service
+  namespace: ai-deploy
+spec:
+  selector:
+    app: model-service
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: ClusterIP

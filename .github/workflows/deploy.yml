@@ -1,0 +1,79 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  EKS_CLUSTER: ai-deploy-cluster
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Auth Service
+        run: |
+          docker build -t $ECR_REGISTRY/ai-deploy/auth-service:$GITHUB_SHA services/auth-service/
+          docker push $ECR_REGISTRY/ai-deploy/auth-service:$GITHUB_SHA
+
+      - name: Build and push Model Service
+        run: |
+          docker build -t $ECR_REGISTRY/ai-deploy/model-service:$GITHUB_SHA services/model-service/
+          docker push $ECR_REGISTRY/ai-deploy/model-service:$GITHUB_SHA
+
+      - name: Build and push Inference Service
+        run: |
+          docker build -t $ECR_REGISTRY/ai-deploy/inference-service:$GITHUB_SHA services/inference-service/
+          docker push $ECR_REGISTRY/ai-deploy/inference-service:$GITHUB_SHA
+
+      - name: Build and push Worker Service
+        run: |
+          docker build -t $ECR_REGISTRY/ai-deploy/worker-service:$GITHUB_SHA services/worker-service/
+          docker push $ECR_REGISTRY/ai-deploy/worker-service:$GITHUB_SHA
+
+  deploy-to-eks:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name ${{ env.EKS_CLUSTER }}
+
+      - name: Deploy services to EKS
+        run: |
+          # Use Kustomize to update the tags dynamically
+          cd k8s/overlays/production
+          sed -i "s|IMAGE_TAG|$GITHUB_SHA|g" kustomization.yaml
+          kubectl apply -k .
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/auth-service -n ai-deploy --timeout=300s
+          kubectl rollout status deployment/model-service -n ai-deploy --timeout=300s
+          kubectl rollout status deployment/inference-service -n ai-deploy --timeout=300s
+          kubectl rollout status deployment/worker-service -n ai-deploy --timeout=300s

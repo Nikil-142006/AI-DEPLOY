@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-deploy-config
+  namespace: ai-deploy
+data:
+  aws-s3-bucket: "ai-deploy-models-prod"
+  aws-region: "us-east-1"
+  ecr-registry: "138114712066.dkr.ecr.us-east-1.amazonaws.com"

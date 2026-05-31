@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+images:
+  - name: 138114712066.dkr.ecr.us-east-1.amazonaws.com/ai-deploy/auth-service
+    newTag: IMAGE_TAG
+  - name: 138114712066.dkr.ecr.us-east-1.amazonaws.com/ai-deploy/model-service
+    newTag: IMAGE_TAG
+  - name: 138114712066.dkr.ecr.us-east-1.amazonaws.com/ai-deploy/inference-service
+    newTag: IMAGE_TAG
+  - name: 138114712066.dkr.ecr.us-east-1.amazonaws.com/ai-deploy/worker-service
+    newTag: IMAGE_TAG
