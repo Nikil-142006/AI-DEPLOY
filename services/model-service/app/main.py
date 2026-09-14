@@ -34,6 +34,9 @@ app = FastAPI(
     title="AI Deploy – Model Service",
     description="Model registry: upload, manage, and deploy ML models as scalable REST APIs",
     version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/models/openapi.json",
     lifespan=lifespan,
 )
 

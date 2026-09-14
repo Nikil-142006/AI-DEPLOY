@@ -34,6 +34,9 @@ app = FastAPI(
     title="AI Deploy – Inference Service",
     description="Routes inference requests to deployed model pods with Redis caching",
     version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/inference/openapi.json",
     lifespan=lifespan,
 )
 
