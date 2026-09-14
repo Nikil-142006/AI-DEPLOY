@@ -62,12 +62,14 @@ jobs:
             echo "Cluster already exists, skipping creation."
           else
             echo "Creating EKS cluster..."
+            SUBNET_IDS="${{ secrets.EKS_SUBNET_IDS }}"
+            SUBNET_LIST=$(echo $SUBNET_IDS | tr ',' ' ')
             aws eks create-cluster \
               --name ${{ env.EKS_CLUSTER }} \
               --region ${{ env.AWS_REGION }} \
               --kubernetes-version 1.31 \
               --role-arn ${{ secrets.EKS_CLUSTER_ROLE_ARN }} \
-              --resources-vpc-config subnetIds=${{ secrets.EKS_SUBNET_IDS }},securityGroupIds=${{ secrets.EKS_SECURITY_GROUP_ID }}
+              --resources-vpc-config subnetIds=$SUBNET_IDS,securityGroupIds=${{ secrets.EKS_SECURITY_GROUP_ID }}
             echo "Waiting for cluster to become ACTIVE (this takes ~10 minutes)..."
             aws eks wait cluster-active --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
             echo "Cluster is ACTIVE!"
@@ -79,12 +81,14 @@ jobs:
             echo "Node group already exists, skipping creation."
           else
             echo "Creating node group..."
+            SUBNET_IDS="${{ secrets.EKS_SUBNET_IDS }}"
+            SUBNET_LIST=$(echo $SUBNET_IDS | tr ',' ' ')
             aws eks create-nodegroup \
               --cluster-name ${{ env.EKS_CLUSTER }} \
               --nodegroup-name ai-deploy-nodes \
               --region ${{ env.AWS_REGION }} \
               --node-role ${{ secrets.EKS_NODE_ROLE_ARN }} \
-              --subnets ${{ secrets.EKS_SUBNET_IDS }} \
+              --subnets $SUBNET_LIST \
               --instance-types t3.medium \
               --scaling-config minSize=1,maxSize=1,desiredSize=1 \
               --ami-type AL2_x86_64
