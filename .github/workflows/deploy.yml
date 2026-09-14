@@ -139,6 +139,10 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --name ${{ env.EKS_CLUSTER }}
 
+      - name: Install NGINX Ingress Controller
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.0/deploy/static/provider/aws/deploy.yaml
+
       - name: Deploy services to EKS
         run: |
           cd k8s/base
@@ -150,3 +154,4 @@ jobs:
           kubectl rollout status deployment/model-service -n ai-deploy --timeout=300s
           kubectl rollout status deployment/inference-service -n ai-deploy --timeout=300s
           kubectl rollout status deployment/worker-service -n ai-deploy --timeout=300s
+
