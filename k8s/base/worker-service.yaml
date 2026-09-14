@@ -21,6 +21,7 @@ spec:
       containers:
         - name: worker-service
           image: 138114712066.dkr.ecr.us-east-1.amazonaws.com/ai-deploy/worker-service:latest
+          imagePullPolicy: Always
           env:
             - name: MONGO_URI
               valueFrom:

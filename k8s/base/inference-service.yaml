@@ -25,6 +25,7 @@ spec:
       containers:
         - name: inference-service
           image: 138114712066.dkr.ecr.us-east-1.amazonaws.com/ai-deploy/inference-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
