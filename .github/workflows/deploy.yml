@@ -7,7 +7,7 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-  EKS_CLUSTER: ai-deploy-nodes
+  EKS_CLUSTER: ai-deploy-cluster
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -46,8 +46,70 @@ jobs:
           docker build -t $ECR_REGISTRY/ai-deploy/worker-service:$GITHUB_SHA services/worker-service/
           docker push $ECR_REGISTRY/ai-deploy/worker-service:$GITHUB_SHA
 
+  provision-cluster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Create EKS Cluster if not exists
+        run: |
+          if aws eks describe-cluster --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }} 2>/dev/null; then
+            echo "Cluster already exists, skipping creation."
+          else
+            echo "Creating EKS cluster..."
+            aws eks create-cluster \
+              --name ${{ env.EKS_CLUSTER }} \
+              --region ${{ env.AWS_REGION }} \
+              --kubernetes-version 1.31 \
+              --role-arn ${{ secrets.EKS_CLUSTER_ROLE_ARN }} \
+              --resources-vpc-config subnetIds=${{ secrets.EKS_SUBNET_IDS }},securityGroupIds=${{ secrets.EKS_SECURITY_GROUP_ID }}
+            echo "Waiting for cluster to become ACTIVE (this takes ~10 minutes)..."
+            aws eks wait cluster-active --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
+            echo "Cluster is ACTIVE!"
+          fi
+
+      - name: Create Node Group if not exists
+        run: |
+          if aws eks describe-nodegroup --cluster-name ${{ env.EKS_CLUSTER }} --nodegroup-name ai-deploy-nodes --region ${{ env.AWS_REGION }} 2>/dev/null; then
+            echo "Node group already exists, skipping creation."
+          else
+            echo "Creating node group..."
+            aws eks create-nodegroup \
+              --cluster-name ${{ env.EKS_CLUSTER }} \
+              --nodegroup-name ai-deploy-nodes \
+              --region ${{ env.AWS_REGION }} \
+              --node-role ${{ secrets.EKS_NODE_ROLE_ARN }} \
+              --subnets ${{ secrets.EKS_SUBNET_IDS }} \
+              --instance-types t3.medium \
+              --scaling-config minSize=1,maxSize=1,desiredSize=1 \
+              --ami-type AL2_x86_64
+            echo "Waiting for node group to become ACTIVE (this takes ~5 minutes)..."
+            aws eks wait nodegroup-active \
+              --cluster-name ${{ env.EKS_CLUSTER }} \
+              --nodegroup-name ai-deploy-nodes \
+              --region ${{ env.AWS_REGION }}
+            echo "Node group is ACTIVE!"
+          fi
+
+      - name: Install VPC CNI Add-on if not exists
+        run: |
+          if aws eks describe-addon --cluster-name ${{ env.EKS_CLUSTER }} --addon-name vpc-cni --region ${{ env.AWS_REGION }} 2>/dev/null; then
+            echo "VPC CNI already installed."
+          else
+            echo "Installing Amazon VPC CNI..."
+            aws eks create-addon \
+              --cluster-name ${{ env.EKS_CLUSTER }} \
+              --addon-name vpc-cni \
+              --region ${{ env.AWS_REGION }}
+          fi
+
   deploy-to-eks:
-    needs: build-and-push
+    needs: [build-and-push, provision-cluster]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -67,9 +129,7 @@ jobs:
 
       - name: Deploy services to EKS
         run: |
-          # Use Kustomize to update the tags dynamically
-          cd k8s/overlays/production
-          sed -i "s|IMAGE_TAG|$GITHUB_SHA|g" kustomization.yaml
+          cd k8s/base
           kubectl apply -k .
 
       - name: Wait for rollout
