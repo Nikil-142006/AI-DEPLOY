@@ -61,9 +61,11 @@ spec:
               value: "model-serving"
             - name: SERVICE_NAME
               value: "worker-service"
+            - name: DOCKER_HOST
+              value: "unix:///run/containerd/containerd.sock"
           volumeMounts:
-            - name: docker-socket
-              mountPath: /var/run/docker.sock
+            - name: containerd-socket
+              mountPath: /run/containerd/containerd.sock
           resources:
             requests:
               cpu: "100m"
@@ -71,8 +73,14 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
+          startupProbe:
+            exec:
+              command: ["python", "-c", "import sys; sys.exit(0)"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 10
       volumes:
-        - name: docker-socket
+        - name: containerd-socket
           hostPath:
-            path: /var/run/docker.sock
+            path: /run/containerd/containerd.sock
             type: Socket
