@@ -8,7 +8,7 @@ This document details the exact HTTP routes, parameters, authorization requireme
 
 Base URL: `http://<gateway-ip>/auth` or `http://localhost:8001`
 
-### 1.1 POST `/auth/register`
+### 1.1 POST  hi `/auth/register`
 Creates a new platform user.
 - **Auth required**: None
 - **Request Body**:
