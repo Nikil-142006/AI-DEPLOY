@@ -34,9 +34,9 @@ app = FastAPI(
     title="AI Deploy – Inference Service",
     description="Routes inference requests to deployed model pods with Redis caching",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    root_path="/inference",
+    docs_url="/inference/docs",
+    redoc_url="/inference/redoc",
+    openapi_url="/inference/openapi.json",
     lifespan=lifespan,
 )
 
@@ -72,6 +72,7 @@ app.include_router(router)
 
 
 @app.get("/health", tags=["Health"])
+@app.get("/inference/health", tags=["Health"])
 async def health():
     return {"status": "healthy", "service": settings.SERVICE_NAME}
 

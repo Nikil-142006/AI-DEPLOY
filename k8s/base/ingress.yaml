@@ -3,30 +3,27 @@ kind: Ingress
 metadata:
   name: ai-deploy-ingress
   namespace: ai-deploy
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: nginx
   rules:
     - http:
         paths:
-          - path: /auth(/|$)(.*)
-            pathType: ImplementationSpecific
+          - path: /auth
+            pathType: Prefix
             backend:
               service:
                 name: auth-service
                 port:
                   number: 80
-          - path: /models(/|$)(.*)
-            pathType: ImplementationSpecific
+          - path: /models
+            pathType: Prefix
             backend:
               service:
                 name: model-service
                 port:
                   number: 80
-          - path: /inference(/|$)(.*)
-            pathType: ImplementationSpecific
+          - path: /inference
+            pathType: Prefix
             backend:
               service:
                 name: inference-service

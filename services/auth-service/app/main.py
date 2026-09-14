@@ -34,9 +34,9 @@ app = FastAPI(
     title="AI Deploy – Auth Service",
     description="JWT-based authentication and authorization microservice",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    root_path="/auth",
+    docs_url="/auth/docs",
+    redoc_url="/auth/redoc",
+    openapi_url="/auth/openapi.json",
     lifespan=lifespan,
 )
 
@@ -72,6 +72,7 @@ app.include_router(router)
 
 
 @app.get("/health", tags=["Health"])
+@app.get("/auth/health", tags=["Health"])
 async def health():
     return {"status": "healthy", "service": settings.SERVICE_NAME}
 

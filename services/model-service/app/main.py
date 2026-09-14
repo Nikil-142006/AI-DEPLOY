@@ -34,9 +34,9 @@ app = FastAPI(
     title="AI Deploy – Model Service",
     description="Model registry: upload, manage, and deploy ML models as scalable REST APIs",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    root_path="/models",
+    docs_url="/models/docs",
+    redoc_url="/models/redoc",
+    openapi_url="/models/openapi.json",
     lifespan=lifespan,
 )
 
@@ -72,6 +72,7 @@ app.include_router(router)
 
 
 @app.get("/health", tags=["Health"])
+@app.get("/models/health", tags=["Health"])
 async def health():
     return {"status": "healthy", "service": settings.SERVICE_NAME}
 
