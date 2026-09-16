@@ -142,6 +142,8 @@ jobs:
       - name: Install NGINX Ingress Controller
         run: |
           kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.0/deploy/static/provider/aws/deploy.yaml
+          echo "Waiting for NGINX Ingress Controller to be ready..."
+          kubectl rollout status deployment/ingress-nginx-controller -n ingress-nginx --timeout=300s
 
       - name: Deploy services to EKS
         run: |
