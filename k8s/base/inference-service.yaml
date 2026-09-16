@@ -69,6 +69,14 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 5
+          volumeMounts:
+            - name: model-storage
+              mountPath: /app/model-storage
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /tmp/model-storage
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
