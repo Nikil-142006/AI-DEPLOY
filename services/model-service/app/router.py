@@ -66,7 +66,7 @@ async def upload_model_endpoint(
     except Exception as e:
         await db.models.delete_one({"_id": model.id})
         log.error("upload_failed", error=str(e), model_id=str(model.id))
-        raise HTTPException(500, "Failed to upload model to storage")
+        raise HTTPException(500, f"Failed to upload model to storage: {str(e)}")
 
     # In LOCAL mode: automatically mark the model as DEPLOYED so inference works immediately.
     # In S3 mode: stays as UPLOADED (worker handles building & deploying to Kubernetes).

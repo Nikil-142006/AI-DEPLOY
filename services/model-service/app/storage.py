@@ -14,8 +14,12 @@ log = structlog.get_logger()
 async def upload_model_local(file_bytes: bytes, storage_key: str) -> str:
     """Save model file to local disk and return a local:// URI."""
     local_path = Path(settings.LOCAL_MODEL_STORAGE_PATH) / storage_key
-    local_path.parent.mkdir(parents=True, exist_ok=True)
-    # Run blocking file I/O in a thread to keep async
+    try:
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        local_path = Path("/tmp/model-storage") / storage_key
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+
     await asyncio.to_thread(local_path.write_bytes, file_bytes)
     local_uri = f"local://{storage_key}"
     log.info("model_saved_locally", path=str(local_path), uri=local_uri)
