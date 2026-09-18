@@ -76,7 +76,8 @@ AI-DEPLOY/
 
 ## ⚙️ 3. Core Components (Plain English Explanations)
 
-Our system is split into four primary microservices, alongside three infrastructure containers:
+Our system is split into four primary microservices, alongside three infrastructure containers: new
+
 
 ### The Microservices (FastAPI)
 | Service Name | What it does | Simple Analogy |
